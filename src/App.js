@@ -1,30 +1,30 @@
 import React, { Component } from 'react';
+import 'reset-css/reset.css';
 import './App.css';
 import queryString from 'query-string';
 
 let defaultStyle = {
-  color: '#fff'
+  color: '#fff',
+  'font-family': 'Arial' 
 };
-let fakeServerData = {
-  user: {
-    name: 'David',
-    playlists: [
-      {
-        name: 'My favorites',
-        songs: [
-          {name: 'Beat It', duration: 1345}, 
-          {name: 'Cannelloni Makaroni', duration: 1236},
-          {name: 'Rosa helikopter', duration: 70000}
-        ]
-      }
-    ]
-  }
+let counterStyle = {
+  ...defaultStyle,
+  width: '40%', 
+  display: 'inline-block', 
+  'margin-bottom': '10px',
+  'font-size': '20px',
+  'line-height': '30px'
 };
+
+function isEven(number) {
+  return number % 2;
+}
 
 class PlaylistCounter extends Component {
   render() {
+    let playlistCounterStyle = counterStyle;
     return (
-      <div style={{...defaultStyle, width: '40%', display: 'inline-block'}}>
+      <div style={playlistCounterStyle}>
         <h2>{this.props.playlists.length} playlists</h2>
       </div>
     );
@@ -33,13 +33,21 @@ class PlaylistCounter extends Component {
 
 class HoursCounter extends Component {
   render() {
-    let totalDuration = this.props.playlists.reduce((sum, eachPlaylist) => {
+    let totalDurationInSeconds = this.props.playlists.reduce((sum, eachPlaylist) => {
       return sum + eachPlaylist.totalDurationInSeconds;
     }, 0);
+    let totalDurationInMinutes = Math.round(totalDurationInSeconds / 60);
+
+    let isTooLow = totalDurationInMinutes < 50;
+    let hoursCounterStyle = {
+      ...counterStyle,
+      color: isTooLow ? 'red' : 'white',
+      'font-weight': isTooLow ? 'bold' : 'normal'
+    };
 
     return (
-      <div style={{...defaultStyle, width: '40%', display: 'inline-block'}}>
-        <h2>{Math.round(totalDuration/60)} minutes</h2>
+      <div style={hoursCounterStyle}>
+        <h2>{totalDurationInMinutes} minutes</h2>
       </div>
     );
   }
@@ -50,8 +58,8 @@ class Filter extends Component {
     return (
       <div style={defaultStyle}>
         <img/>
-        <input type="text" onChange={event => this.props.onTextChange(event.target.value)}/>
-        Filter
+        <input type="text" onChange={event => this.props.onTextChange(event.target.value)}
+        style={{...defaultStyle, color: 'black', 'font-size': '20px', padding: '10px'}}/>
       </div>
     );
   }
@@ -62,13 +70,19 @@ class Playlist extends Component {
     let playlist = this.props.playlist;    
 
     return (
-      <div style={{...defaultStyle, width: '20%', display: 'inline-block'}}>
+      <div style={{
+        ...defaultStyle, 
+        width: '25%', 
+        display: 'inline-block',
+        padding: '10px',
+        'background-color': isEven(this.props.index) ? '#C0C0C0': '#808080'
+        }}>
+        <h2>{playlist.name}</h2>
         <img src={playlist.imageUrl} style={{width: '60px'}}/>
-        <h3>{playlist.name}</h3>
-        <ul>
+        <ul style={{'margin-top': '10px', 'font-weight': 'bold'}}>
           {
             playlist.songs.map(song =>
-              <li>{song.name}</li>
+              <li style={{'padding-top': '2px'}}>{song.name}</li>
             )
           }
         </ul>
@@ -154,15 +168,15 @@ class App extends Component {
         {
           this.state.user ? 
             <div>
-              <h1 style={{...defaultStyle, 'fontSize': '54px'}}>
+              <h1 style={{...defaultStyle, 'fontSize': '54px', 'marginTop': '5px'}}>
                 {this.state.user.name}'s Playlists
               </h1>
               <PlaylistCounter playlists={playlistsToRender}/>
               <HoursCounter playlists={playlistsToRender} />
               <Filter onTextChange={text => this.setState({filterString: text})}/>
               {
-                playlistsToRender.map(playlist => 
-                  <Playlist playlist={playlist}/>
+                playlistsToRender.map((playlist, i) => 
+                  <Playlist playlist={playlist} index={i}/>
                 )
               }
             </div> : 
